@@ -33,23 +33,19 @@ exports.register = async (req, res) => {
     await user.save();
 
     const token = generateToken(user);
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Пользователь зарегистрирован",
-        id: user._id,
-        username: user.username,
-        token: token,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Пользователь зарегистрирован",
+      id: user._id,
+      username: user.username,
+      token,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Ошибка сервера",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Ошибка сервера",
+      error: error.message,
+    });
   }
 };
 
@@ -73,17 +69,16 @@ exports.login = async (req, res) => {
     const token = generateToken(user);
     res.json({
       success: true,
+      id: user._id,
+      username: user.username,
       token,
-      user: { id: user._id, username: user.username },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Ошибка сервера",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Ошибка сервера",
+      error: error.message,
+    });
   }
 };
 
@@ -97,12 +92,10 @@ exports.getProfile = async (req, res) => {
     }
     res.json({ success: true, user });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Ошибка сервера",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Ошибка сервера",
+      error: error.message,
+    });
   }
 };
