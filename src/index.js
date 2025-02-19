@@ -6,7 +6,7 @@ const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 
 // Import configs
-const swaggerDocs = require("./config/SwaggerConfig");
+const swaggerDocs = require("./config/swaggerConfig");
 const connectDB = require("./config/database");
 
 // Import middleware
@@ -31,6 +31,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:8000",
+  "https://zaporka-backend.onrender.com",
   "https://zaporka.uz",
 ];
 
