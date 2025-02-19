@@ -30,6 +30,7 @@ app.use("/uploads", express.static(path.join(__dirname, "./uploads")));
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:8000",
   "https://zaporka.uz",
 ];
 
@@ -49,12 +50,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.options("*", cors(corsOptions));
-
-app.use((req, res, next) => {
-  console.log("Incoming request:", req.method, req.url);
-  console.log("CORS Headers:", res.getHeaders());
-  next();
-});
 
 // Логирование
 if (process.env.NODE_ENV !== "production") {
