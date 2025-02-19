@@ -114,4 +114,4 @@ const crudCreator = (Model, options = {}) => {
   };
 };
 
-module.exports = { crudCreator };
+module.exports = crudCreator;

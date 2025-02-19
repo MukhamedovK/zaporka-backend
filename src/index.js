@@ -13,6 +13,7 @@ const connectDB = require("./config/database");
 const authMiddleware = require("./middleware/authMiddleware");
 
 // Import routes
+const productRouter = require("./routes/productRouter")
 
 const app = express();
 
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Routes
+app.use("/api/v1", productRouter)
 
 const PORT = process.env.PORT;
 const DOMAIN = process.env.DOMAIN;
