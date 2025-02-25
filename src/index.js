@@ -33,6 +33,7 @@ const allowedOrigins = [
   "http://localhost:8000",
   "https://zaporka-backend.onrender.com",
   "https://zaporka.uz",
+  "https://zaporka-admin.vercel.app"
 ];
 
 const corsOptions = {
