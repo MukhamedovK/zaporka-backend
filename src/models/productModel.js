@@ -36,6 +36,7 @@ const productModel = new mongoose.Schema(
     serviceLife: { type: String },
     accession: { type: String },
     advantages: { type: [String] },
+    category: { type: String, ref: "category", required: true },
   },
   { timestamps: true }
 );

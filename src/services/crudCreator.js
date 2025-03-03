@@ -29,6 +29,7 @@ const crudCreator = (Model, options = {}) => {
         if (!item) return res.status(404).json({ message: "Not found" });
         res.status(200).json(item);
       } catch (err) {
+        console.log(err);
         res.status(400).json({ message: err.message });
       }
     },

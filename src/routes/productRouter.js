@@ -7,6 +7,7 @@ const productController = crudCreator(productModel, {
   useImages: true,
   imageFields: ["mainImage", "swiperImages"],
   imageFolder: "products",
+  populateFields: "category",
 });
 
 /**
@@ -46,6 +47,9 @@ const productController = crudCreator(productModel, {
  *           type: boolean
  *           default: true
  *           description: Доступность товара
+ *         category:
+ *           type: string
+ *           description: "Id of the category"
  *         mainImage:
  *           type: string
  *           format: binary
@@ -210,6 +214,9 @@ const productController = crudCreator(productModel, {
  *                 type: boolean
  *                 default: true
  *                 description: Доступность товара
+ *               category:
+ *                 type: string
+ *                 description: "Id of the category"
  *               mainImage:
  *                 type: string
  *                 format: binary
@@ -394,6 +401,9 @@ const productController = crudCreator(productModel, {
  *                 type: boolean
  *                 default: true
  *                 description: Доступность товара
+ *               category:
+ *                 type: string
+ *                 description: "Id of the category"
  *               mainImage:
  *                 type: string
  *                 format: binary
