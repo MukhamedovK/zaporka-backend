@@ -53,11 +53,8 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// ✅ Apply CORS middleware globally
-app.use(cors(corsOptions));
-
-// ✅ Pre-flight requests (for `OPTIONS` method)
-app.options("*", cors(corsOptions));
+// CORS
+app.use(cors())
 
 // Logging
 if (process.env.NODE_ENV !== "production") {
