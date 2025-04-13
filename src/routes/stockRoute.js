@@ -51,5 +51,17 @@ router.get("/history/:id", async (req, res) => {
     res.status(500).json({ message: "Ошибка при получении истории", error: err.message });
   }
 });
+// Новый маршрут
+router.get("/history", async (req, res) => {
+  try {
+    const logs = await StockLog.find()
+      .populate("product", "title") // Получаем название товара
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(logs);
+  } catch (err) {
+    res.status(500).json({ message: "Ошибка при получении истории", error: err.message });
+  }
+});
 
 module.exports = router;
