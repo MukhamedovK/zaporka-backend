@@ -1,9 +1,10 @@
 const router = require("express").Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const Product = require("../models/productModel");
 const StockLog = require("../models/stockLogModel");
 
 // Добавить приход
-router.post("/add/:id", async (req, res) => {
+router.post("/add/:id", authMiddleware, async (req, res) => {
   try {
     const productId = req.params.id;
     const { amount, addedBy } = req.body;
@@ -40,7 +41,7 @@ router.post("/add/:id", async (req, res) => {
 });
 
 // Получить историю приходов по продукту
-router.get("/history/:id", async (req, res) => {
+router.get("/history/:id", authMiddleware, async (req, res) => {
   try {
     const productId = req.params.id;
 
@@ -52,7 +53,7 @@ router.get("/history/:id", async (req, res) => {
   }
 });
 // Новый маршрут
-router.get("/history", async (req, res) => {
+router.get("/history", authMiddleware, async (req, res) => {
   try {
     const logs = await StockLog.find()
       .populate("product", "title") // Получаем название товара

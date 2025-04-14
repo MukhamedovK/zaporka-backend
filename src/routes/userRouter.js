@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const userModel = require("../models/userModel");
 const crudCreator = require("../services/crudCreator");
 
@@ -95,9 +96,9 @@ const userController = crudCreator(userModel);
  *         description: User not found
  */
 
-router.get("/", userController.getAll);
-router.get("/:id", userController.getOne);
-router.put("/:id", async (req, res) => {
+router.get("/", authMiddleware, userController.getAll);
+router.get("/:id", authMiddleware, userController.getOne);
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const user = await userModel.findById(req.params.id);
     if (!user) {
@@ -111,6 +112,6 @@ router.put("/:id", async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 });
-router.delete("/:id", userController.remove);
+router.delete("/:id", authMiddleware, userController.remove);
 
 module.exports = router;

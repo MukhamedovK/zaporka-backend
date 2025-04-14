@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const categoryModel = require("../models/categoryModel");
 const crudCreator = require("../services/crudCreator");
 
@@ -116,7 +117,7 @@ const categoryController = crudCreator(categoryModel);
 
 router.get("/", categoryController.getAll);
 router.get("/:id", categoryController.getOne);
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     let { name, slug } = req.body;
     if (!name) {
@@ -131,7 +132,7 @@ router.post("/", async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     let { name, slug } = req.body;
     if (!name) {
@@ -153,6 +154,6 @@ router.put("/:id", async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-router.delete("/:id", categoryController.remove);
+router.delete("/:id", authMiddleware, categoryController.remove);
 
 module.exports = router;
