@@ -17,6 +17,7 @@ const productRouter = require("./routes/productRouter");
 const authRouter = require("./routes/authRouter");
 const userRouter = require("./routes/userRouter");
 const categoryRouter = require("./routes/categoryRouter");
+const stockRouter = require("./routes/stockRoute")
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/stock", stockRouter)
 
 const PORT = process.env.PORT || 5000;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
