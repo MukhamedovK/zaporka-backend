@@ -2,6 +2,7 @@ const router = require("express").Router();
 const productModel = require("../models/productModel");
 const crudCreator = require("../services/crudCreator");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const productController = crudCreator(productModel, {
   useImages: true,
@@ -543,20 +544,26 @@ router.get("/", productController.getAll);
 router.get("/:id", productController.getOne);
 router.post(
   "/",
-  uploadMiddleware("products", [
-    { name: "mainImage", maxCount: 1 },
-    { name: "swiperImages", maxCount: 5 },
-  ]),
+  [
+    authMiddleware,
+    uploadMiddleware("products", [
+      { name: "mainImage", maxCount: 1 },
+      { name: "swiperImages", maxCount: 5 },
+    ]),
+  ],
   productController.create
 );
 router.put(
   "/:id",
-  uploadMiddleware("products", [
-    { name: "mainImage", maxCount: 1 },
-    { name: "swiperImages", maxCount: 5 },
-  ]),
+  [
+    authMiddleware,
+    uploadMiddleware("products", [
+      { name: "mainImage", maxCount: 1 },
+      { name: "swiperImages", maxCount: 5 },
+    ]),
+  ],
   productController.update
 );
-router.delete("/:id", productController.remove);
+router.delete("/:id", authMiddleware, productController.remove);
 
 module.exports = router;

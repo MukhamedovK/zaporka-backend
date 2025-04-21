@@ -17,6 +17,7 @@ const productRouter = require("./routes/productRouter");
 const authRouter = require("./routes/authRouter");
 const userRouter = require("./routes/userRouter");
 const categoryRouter = require("./routes/categoryRouter");
+const ordersRouter = require("./routes/ordersRouter");
 const stockRouter = require("./routes/stockRoute")
 
 const app = express();
@@ -39,21 +40,6 @@ const allowedOrigins = [
   "https://zaporka-admin.vercel.app",
 ];
 
-// ✅ CORS Options
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no 'origin' (e.g., mobile apps, curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true, // Allow cookies and authentication
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
 // CORS
 app.use(cors())
 
@@ -72,6 +58,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/orders", ordersRouter);
 app.use("/api/v1/stock", stockRouter)
 
 const PORT = process.env.PORT || 5000;
