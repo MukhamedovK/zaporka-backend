@@ -4,19 +4,21 @@ const Product = require("../models/productModel");
 const StockLog = require("../models/stockLogModel");
 
 // Добавить приход
-router.post("/add/:id", authMiddleware, async (req, res) => {
+router.post("/add/:id", async (req, res) => {
   try {
     const productId = req.params.id;
-    const { amount, costPrice, addedBy } = req.body;
+    const { amount, costPrice, currency, addedBy } = req.body;
 
-    // Validate amount
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: "Неверное количество для прихода" });
     }
 
-    // Validate costPrice
     if (!costPrice || costPrice <= 0) {
       return res.status(400).json({ message: "Неверная стоимость для прихода" });
+    }
+
+    if (!["USD", "UZS"].includes(currency)) {
+      return res.status(400).json({ message: "Неверная валюта, должна быть USD или UZS" });
     }
 
     const product = await Product.findById(productId);
@@ -24,15 +26,14 @@ router.post("/add/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Продукт не найден" });
     }
 
-    // Update product stock
     product.stock = (product.stock || 0) + amount;
     await product.save();
 
-    // Create a new stock log entry
     const log = new StockLog({
       product: product._id,
       amount,
-      costPrice, // Include costPrice
+      costPrice,
+      currency, // Store the currency
       addedBy: typeof addedBy === "string" && addedBy.trim() ? addedBy : "admin",
     });
     await log.save();
