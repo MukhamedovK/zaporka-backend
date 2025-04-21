@@ -6,10 +6,16 @@ const StockLog = require("../models/stockLogModel");
 router.post("/add/:id", async (req, res) => {
   try {
     const productId = req.params.id;
-    const { amount, addedBy } = req.body;
+    const { amount, costPrice, addedBy } = req.body;
 
+    // Validate amount
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: "Неверное количество для прихода" });
+    }
+
+    // Validate costPrice
+    if (!costPrice || costPrice <= 0) {
+      return res.status(400).json({ message: "Неверная стоимость для прихода" });
     }
 
     const product = await Product.findById(productId);
@@ -17,15 +23,16 @@ router.post("/add/:id", async (req, res) => {
       return res.status(404).json({ message: "Продукт не найден" });
     }
 
-    // Обновляем количество
+    // Update product stock
     product.stock = (product.stock || 0) + amount;
     await product.save();
 
-    // Создаём запись в истории
+    // Create a new stock log entry
     const log = new StockLog({
       product: product._id,
       amount,
-      addedBy: typeof addedBy === "string" && addedBy.trim() ? addedBy : "admin"
+      costPrice, // Include costPrice
+      addedBy: typeof addedBy === "string" && addedBy.trim() ? addedBy : "admin",
     });
     await log.save();
 
@@ -44,7 +51,9 @@ router.get("/history/:id", async (req, res) => {
   try {
     const productId = req.params.id;
 
-    const logs = await StockLog.find({ product: productId }).sort({ createdAt: -1 });
+    const logs = await StockLog.find({ product: productId })
+      .populate("product", "title") // Populates product with title
+      .sort({ createdAt: -1 });
 
     res.status(200).json(logs);
   } catch (err) {
@@ -55,7 +64,7 @@ router.get("/history/:id", async (req, res) => {
 router.get("/history", async (req, res) => {
   try {
     const logs = await StockLog.find()
-      .populate("product", "title") // Получаем название товара
+      .populate("product", "title") // Populates product with title
       .sort({ createdAt: -1 });
 
     res.status(200).json(logs);
