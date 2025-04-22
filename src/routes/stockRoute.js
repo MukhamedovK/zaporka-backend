@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
 const Product = require("../models/productModel");
 const StockLog = require("../models/stockLogModel");
 const Invoice = require("../models/invoiceModel");
@@ -23,7 +24,6 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Добавьте хотя бы один товар" });
     }
 
-    // Валидация даты
     const parsedDate = new Date(date);
     if (isNaN(parsedDate)) {
       await session.abortTransaction();
@@ -31,7 +31,6 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Некорректная дата" });
     }
 
-    // Валидация товаров
     for (const item of items) {
       const { productId, amount, costPrice, sellingPrice } = item;
 
@@ -40,6 +39,14 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
         session.endSession();
         return res.status(400).json({ message: "Укажите продукт для каждого товара" });
       }
+
+      // Validate productId as a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ message: `Неверный формат productId: ${productId}` });
+      }
+
       if (!amount || amount <= 0) {
         await session.abortTransaction();
         session.endSession();
@@ -62,17 +69,14 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
       }
     }
 
-    // Создаем накладную
     const invoice = new Invoice({
       source,
       date: parsedDate,
       items: [],
     });
 
-    // Сохраняем накладную в рамках сессии
     await invoice.save({ session });
 
-    // Обрабатываем каждый товар
     const stockLogs = [];
     for (const item of items) {
       const { productId, amount, costPrice, sellingPrice, addedBy } = item;
@@ -81,14 +85,12 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
       if (!product) {
         await session.abortTransaction();
         session.endSession();
-        return res.status(404).json({ message: "Продукт не найден" });
+        return res.status(404).json({ message: `Продукт с ID ${productId} не найден` });
       }
 
-      // Обновляем количество на складе
       product.stock = (product.stock || 0) + amount;
       await product.save({ session });
 
-      // Создаем запись StockLog
       const log = new StockLog({
         product: product._id,
         amount,
@@ -101,12 +103,10 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
       stockLogs.push(log);
     }
 
-    // Сохраняем все StockLog записи
     const savedLogs = await StockLog.insertMany(stockLogs, { session });
     invoice.items = savedLogs.map((log) => log._id);
     await invoice.save({ session });
 
-    // Подтверждаем транзакцию
     await session.commitTransaction();
     session.endSession();
 
@@ -121,6 +121,7 @@ router.post("/add-invoice", authMiddleware, async (req, res) => {
   }
 });
 
+// Other routes remain unchanged
 router.get("/history", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -157,7 +158,7 @@ router.get("/history-items", authMiddleware, async (req, res) => {
 
     const logs = await StockLog.find()
       .populate("product", "title")
-      .populate("invoice", "source date") // Указываем только нужные поля
+      .populate("invoice", "source date")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -176,4 +177,3 @@ router.get("/history-items", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
-//asd
