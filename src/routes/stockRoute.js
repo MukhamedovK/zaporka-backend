@@ -7,7 +7,7 @@ const StockLog = require("../models/stockLogModel");
 router.post("/add/:id", async (req, res) => {
   try {
     const productId = req.params.id;
-    const { amount, costPrice, currency, addedBy } = req.body;
+    const { amount, costPrice, sellingPrice, currency, addedBy } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: "Неверное количество для прихода" });
@@ -15,6 +15,10 @@ router.post("/add/:id", async (req, res) => {
 
     if (!costPrice || costPrice <= 0) {
       return res.status(400).json({ message: "Неверная стоимость для прихода" });
+    }
+
+    if (!sellingPrice || sellingPrice <= 0) {
+      return res.status(400).json({ message: "Неверная цена продажи" });
     }
 
     if (!["USD", "UZS"].includes(currency)) {
@@ -33,7 +37,8 @@ router.post("/add/:id", async (req, res) => {
       product: product._id,
       amount,
       costPrice,
-      currency, // Store the currency
+      sellingPrice, // Save the selling price
+      currency,
       addedBy: typeof addedBy === "string" && addedBy.trim() ? addedBy : "admin",
     });
     await log.save();
@@ -63,10 +68,10 @@ router.get("/history/:id", authMiddleware, async (req, res) => {
   }
 });
 // Новый маршрут
-router.get("/history", authMiddleware, async (req, res) => {
+router.get("/history", async (req, res) => {
   try {
     const logs = await StockLog.find()
-      .populate("product", "title") // Populates product with title
+      .populate("product", "title")
       .sort({ createdAt: -1 });
 
     res.status(200).json(logs);
