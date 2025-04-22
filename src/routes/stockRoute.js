@@ -70,11 +70,26 @@ router.get("/history/:id", authMiddleware, async (req, res) => {
 // Новый маршрут
 router.get("/history", async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+    // Fetch the paginated logs
     const logs = await StockLog.find()
       .populate("product", "title")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json(logs);
+    // Get the total count of documents
+    const total = await StockLog.countDocuments();
+
+    res.status(200).json({
+      data: logs, // The paginated data
+      total, // Total number of documents
+      page, // Current page
+      limit, // Items per page
+    });
   } catch (err) {
     res.status(500).json({ message: "Ошибка при получении истории", error: err.message });
   }
