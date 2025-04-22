@@ -9,4 +9,7 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Добавляем индекс для сортировки по дате
+invoiceSchema.index({ date: -1 });
+
 module.exports = mongoose.model("Invoice", invoiceSchema);

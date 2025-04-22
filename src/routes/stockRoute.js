@@ -1,38 +1,63 @@
-// routes/stock.js
 const router = require("express").Router();
 const Product = require("../models/productModel");
 const StockLog = require("../models/stockLogModel");
 const Invoice = require("../models/invoiceModel");
+const authMiddleware = require("../middleware/authMiddleware");
 
-router.post("/add-invoice", async (req, res) => {
+router.post("/add-invoice", authMiddleware, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { source, date, items } = req.body;
 
     if (!source) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ message: "Укажите источник поступления" });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ message: "Добавьте хотя бы один товар" });
+    }
+
+    // Валидация даты
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Некорректная дата" });
     }
 
     // Валидация товаров
     for (const item of items) {
-      const { productId, amount, costPrice, sellingPrice, addedBy } = item;
+      const { productId, amount, costPrice, sellingPrice } = item;
 
       if (!productId) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({ message: "Укажите продукт для каждого товара" });
       }
       if (!amount || amount <= 0) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({ message: "Неверное количество для товара" });
       }
       if (!costPrice || costPrice <= 0) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({ message: "Неверная себестоимость для товара" });
       }
       if (!sellingPrice || sellingPrice <= 0) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({ message: "Неверная цена продажи для товара" });
       }
       if (costPrice > sellingPrice) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({ message: "Себестоимость не может быть больше цены продажи" });
       }
     }
@@ -40,23 +65,28 @@ router.post("/add-invoice", async (req, res) => {
     // Создаем накладную
     const invoice = new Invoice({
       source,
-      date: new Date(date),
+      date: parsedDate,
       items: [],
     });
+
+    // Сохраняем накладную в рамках сессии
+    await invoice.save({ session });
 
     // Обрабатываем каждый товар
     const stockLogs = [];
     for (const item of items) {
       const { productId, amount, costPrice, sellingPrice, addedBy } = item;
 
-      const product = await Product.findById(productId);
+      const product = await Product.findById(productId).session(session);
       if (!product) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(404).json({ message: "Продукт не найден" });
       }
 
       // Обновляем количество на складе
       product.stock = (product.stock || 0) + amount;
-      await product.save();
+      await product.save({ session });
 
       // Создаем запись StockLog
       const log = new StockLog({
@@ -64,28 +94,34 @@ router.post("/add-invoice", async (req, res) => {
         amount,
         costPrice,
         sellingPrice,
-        currency: "UZS", // Фиксировано UZS
-        addedBy: addedBy || "admin",
+        currency: "UZS",
+        addedBy: addedBy || req.user?.username || "admin",
         invoice: invoice._id,
       });
       stockLogs.push(log);
     }
 
     // Сохраняем все StockLog записи
-    const savedLogs = await StockLog.insertMany(stockLogs);
+    const savedLogs = await StockLog.insertMany(stockLogs, { session });
     invoice.items = savedLogs.map((log) => log._id);
-    await invoice.save();
+    await invoice.save({ session });
+
+    // Подтверждаем транзакцию
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       message: "Накладная успешно добавлена",
       invoice,
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: "Ошибка сервера", error: err.message });
   }
 });
 
-router.get("/history", async (req, res) => {
+router.get("/history", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -113,7 +149,7 @@ router.get("/history", async (req, res) => {
   }
 });
 
-router.get("/history-items", async (req, res) => {
+router.get("/history-items", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -121,7 +157,7 @@ router.get("/history-items", async (req, res) => {
 
     const logs = await StockLog.find()
       .populate("product", "title")
-      .populate("invoice", "source date")
+      .populate("invoice", "source date") // Указываем только нужные поля
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -138,3 +174,5 @@ router.get("/history-items", async (req, res) => {
     res.status(500).json({ message: "Ошибка при получении истории товаров", error: err.message });
   }
 });
+
+module.exports = router;
