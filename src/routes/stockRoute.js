@@ -1,98 +1,140 @@
+// routes/stock.js
 const router = require("express").Router();
-const authMiddleware = require("../middleware/authMiddleware");
 const Product = require("../models/productModel");
 const StockLog = require("../models/stockLogModel");
+const Invoice = require("../models/invoiceModel");
 
-// Добавить приход
-router.post("/add/:id", async (req, res) => {
+router.post("/add-invoice", async (req, res) => {
   try {
-    const productId = req.params.id;
-    const { amount, costPrice, sellingPrice, currency, addedBy } = req.body;
+    const { source, date, items } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Неверное количество для прихода" });
+    if (!source) {
+      return res.status(400).json({ message: "Укажите источник поступления" });
     }
 
-    if (!costPrice || costPrice <= 0) {
-      return res.status(400).json({ message: "Неверная стоимость для прихода" });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Добавьте хотя бы один товар" });
     }
 
-    if (!sellingPrice || sellingPrice <= 0) {
-      return res.status(400).json({ message: "Неверная цена продажи" });
+    // Валидация товаров
+    for (const item of items) {
+      const { productId, amount, costPrice, sellingPrice, addedBy } = item;
+
+      if (!productId) {
+        return res.status(400).json({ message: "Укажите продукт для каждого товара" });
+      }
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Неверное количество для товара" });
+      }
+      if (!costPrice || costPrice <= 0) {
+        return res.status(400).json({ message: "Неверная себестоимость для товара" });
+      }
+      if (!sellingPrice || sellingPrice <= 0) {
+        return res.status(400).json({ message: "Неверная цена продажи для товара" });
+      }
+      if (costPrice > sellingPrice) {
+        return res.status(400).json({ message: "Себестоимость не может быть больше цены продажи" });
+      }
     }
 
-    if (!["USD", "UZS"].includes(currency)) {
-      return res.status(400).json({ message: "Неверная валюта, должна быть USD или UZS" });
-    }
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ message: "Продукт не найден" });
-    }
-
-    product.stock = (product.stock || 0) + amount;
-    await product.save();
-
-    const log = new StockLog({
-      product: product._id,
-      amount,
-      costPrice,
-      sellingPrice, // Save the selling price
-      currency,
-      addedBy: typeof addedBy === "string" && addedBy.trim() ? addedBy : "admin",
+    // Создаем накладную
+    const invoice = new Invoice({
+      source,
+      date: new Date(date),
+      items: [],
     });
-    await log.save();
+
+    // Обрабатываем каждый товар
+    const stockLogs = [];
+    for (const item of items) {
+      const { productId, amount, costPrice, sellingPrice, addedBy } = item;
+
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Продукт не найден" });
+      }
+
+      // Обновляем количество на складе
+      product.stock = (product.stock || 0) + amount;
+      await product.save();
+
+      // Создаем запись StockLog
+      const log = new StockLog({
+        product: product._id,
+        amount,
+        costPrice,
+        sellingPrice,
+        currency: "UZS", // Фиксировано UZS
+        addedBy: addedBy || "admin",
+        invoice: invoice._id,
+      });
+      stockLogs.push(log);
+    }
+
+    // Сохраняем все StockLog записи
+    const savedLogs = await StockLog.insertMany(stockLogs);
+    invoice.items = savedLogs.map((log) => log._id);
+    await invoice.save();
 
     res.status(200).json({
-      message: "Приход добавлен, количество обновлено",
-      product,
-      log,
+      message: "Накладная успешно добавлена",
+      invoice,
     });
   } catch (err) {
     res.status(500).json({ message: "Ошибка сервера", error: err.message });
   }
 });
 
-// Получить историю приходов по продукту
-router.get("/history/:id", authMiddleware, async (req, res) => {
-  try {
-    const productId = req.params.id;
-
-    const logs = await StockLog.find({ product: productId })
-      .populate("product", "title") // Populates product with title
-      .sort({ createdAt: -1 });
-
-    res.status(200).json(logs);
-  } catch (err) {
-    res.status(500).json({ message: "Ошибка при получении истории", error: err.message });
-  }
-});
-// Новый маршрут
 router.get("/history", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
-    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    // Fetch the paginated logs
-    const logs = await StockLog.find()
-      .populate("product", "title")
-      .sort({ createdAt: -1 })
+    const invoices = await Invoice.find()
+      .populate({
+        path: "items",
+        populate: { path: "product", select: "title" },
+      })
+      .sort({ date: -1 })
       .skip(skip)
       .limit(limit);
 
-    // Get the total count of documents
-    const total = await StockLog.countDocuments();
+    const total = await Invoice.countDocuments();
 
     res.status(200).json({
-      data: logs, // The paginated data
-      total, // Total number of documents
-      page, // Current page
-      limit, // Items per page
+      data: invoices,
+      total,
+      page,
+      limit,
     });
   } catch (err) {
     res.status(500).json({ message: "Ошибка при получении истории", error: err.message });
   }
 });
 
-module.exports = router;
+router.get("/history-items", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const logs = await StockLog.find()
+      .populate("product", "title")
+      .populate("invoice", "source date")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await StockLog.countDocuments();
+
+    res.status(200).json({
+      data: logs,
+      total,
+      page,
+      limit,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Ошибка при получении истории товаров", error: err.message });
+  }
+});
