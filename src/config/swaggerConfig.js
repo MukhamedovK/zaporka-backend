@@ -29,12 +29,7 @@ const swaggerOptions = {
           bearerFormat: "JWT",
         },
       },
-    },
-    security: [
-      {
-        BearerAuth: [],
-      },
-    ],
+    }
   },
   apis: [path.join(__dirname, "../routes/*.js")],
 };
