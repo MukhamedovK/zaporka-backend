@@ -3,6 +3,7 @@ const productModel = require("../models/productModel");
 const crudCreator = require("../services/crudCreator");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
+const { searchProduct } = require("../controllers/searchController");
 
 const productController = crudCreator(productModel, {
   useImages: true,
@@ -540,6 +541,58 @@ const productController = crudCreator(productModel, {
  *         description: Продукт не найден
  */
 
+/**
+ * @swagger
+ * /api/v1/products/search:
+ *   get:
+ *     summary: Search products by title or description
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Search term to match against product title or description
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of products per page
+ *     responses:
+ *       200:
+ *         description: Successful search with product results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
+ */
+
+router.get("/search", searchProduct);
 router.get("/", productController.getAll);
 router.get("/:id", productController.getOne);
 router.post(
