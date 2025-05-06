@@ -117,7 +117,7 @@ const categoryController = crudCreator(categoryModel);
 
 router.get("/", categoryController.getAll);
 router.get("/:id", categoryController.getOne);
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     let { name, slug } = req.body;
     if (!name) {
