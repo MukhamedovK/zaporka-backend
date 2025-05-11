@@ -4,6 +4,7 @@ const crudCreator = require("../services/crudCreator");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
 const { searchProduct } = require("../controllers/searchController");
+const { createProduct, updateProduct } = require("../controllers/productController");
 
 const productController = crudCreator(productModel, {
   useImages: true,
@@ -604,7 +605,7 @@ router.post(
       { name: "swiperImages", maxCount: 5 },
     ]),
   ],
-  productController.create
+  createProduct
 );
 router.put(
   "/:id",
@@ -615,7 +616,7 @@ router.put(
       { name: "swiperImages", maxCount: 5 },
     ]),
   ],
-  productController.update
+  updateProduct
 );
 router.delete("/:id", authMiddleware, productController.remove);
 

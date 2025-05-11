@@ -1,9 +1,23 @@
 const router = require("express").Router();
+const {
+  getCategories,
+  getCategoryById,
+  getCategoryBySlug,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} = require("../controllers/categoryController");
 const authMiddleware = require("../middleware/authMiddleware");
-const categoryModel = require("../models/categoryModel");
-const crudCreator = require("../services/crudCreator");
+const uploadMiddleware = require("../middleware/uploadMiddleware");
 
-const categoryController = crudCreator(categoryModel);
+const upload = uploadMiddleware("category", [{ name: "image", maxCount: 1 }]);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Categories
+ *   description: Категории товаров
+ */
 
 /**
  * @swagger
@@ -13,147 +27,122 @@ const categoryController = crudCreator(categoryModel);
  *     tags: [Categories]
  *     responses:
  *       200:
- *         description: Список всех категорий
+ *         description: Успешный ответ
  *       500:
  *         description: Ошибка сервера
- *
  *   post:
- *     summary: Создать новую категорию
+ *     summary: Создать категорию
  *     tags: [Categories]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - name
+ *               - image
  *             properties:
  *               name:
  *                 type: string
  *               slug:
  *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
- *         description: Категория успешно создана
+ *         description: Категория создана
  *       400:
  *         description: Ошибка валидации
- *       500:
- *         description: Ошибка сервера
  */
+router.get("/", getCategories);
+router.post("/", authMiddleware, upload, createCategory);
 
 /**
  * @swagger
  * /api/v1/categories/{id}:
  *   get:
- *     summary: Получить одну категорию
+ *     summary: Получить категорию по ID
  *     tags: [Categories]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID категории
  *     responses:
  *       200:
- *         description: Данные о категории
+ *         description: Успешный ответ
  *       404:
  *         description: Категория не найдена
- *       500:
- *         description: Ошибка сервера
- *
  *   put:
  *     summary: Обновить категорию
  *     tags: [Categories]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID категории
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - name
  *             properties:
  *               name:
  *                 type: string
  *               slug:
  *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
- *         description: Категория успешно обновлена
+ *         description: Категория обновлена
  *       400:
  *         description: Ошибка валидации
  *       404:
  *         description: Категория не найдена
- *       500:
- *         description: Ошибка сервера
- *
  *   delete:
  *     summary: Удалить категорию
  *     tags: [Categories]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID категории
  *     responses:
  *       200:
- *         description: Категория успешно удалена
+ *         description: Успешно удалено
  *       404:
  *         description: Категория не найдена
- *       500:
- *         description: Ошибка сервера
  */
+router.get("/:id", getCategoryById);
+router.put("/:id", authMiddleware, upload, updateCategory);
+router.delete("/:id", authMiddleware, deleteCategory);
 
-router.get("/", categoryController.getAll);
-router.get("/:id", categoryController.getOne);
-router.post("/", authMiddleware, async (req, res) => {
-  try {
-    let { name, slug } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: "Name is required" });
-    }
-    if (!slug || slug === "string") {
-      slug = name.replaceAll(" ", "-");
-    }
-    const category = await categoryModel.create({ name, slug });
-    res.status(201).json(category);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-router.put("/:id", authMiddleware, async (req, res) => {
-  try {
-    let { name, slug } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: "Name is required" });
-    }
-    if (!slug) {
-      slug = name.replaceAll(" ", "-");
-    }
-    const category = await categoryModel.findByIdAndUpdate(
-      req.params.id,
-      { name, slug },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-    res.status(201).json(category);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-router.delete("/:id", authMiddleware, categoryController.remove);
+/**
+ * @swagger
+ * /api/v1/categories/slug/{slug}:
+ *   get:
+ *     summary: Получить категорию по slug
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Успешный ответ
+ *       404:
+ *         description: Категория не найдена
+ */
+router.get("/slug/:slug", getCategoryBySlug);
 
 module.exports = router;
