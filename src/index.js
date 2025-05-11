@@ -19,6 +19,7 @@ const userRouter = require("./routes/userRouter");
 const categoryRouter = require("./routes/categoryRouter");
 const ordersRouter = require("./routes/ordersRouter");
 const stockRouter = require("./routes/stockRoute");
+const companyInfoRouter = require("./routes/companyInfoRouter")
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/orders", ordersRouter);
 app.use("/api/v1/stock", stockRouter);
+app.use("/api/v1/company-info", companyInfoRouter);
 
 const PORT = process.env.PORT || 8000;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
