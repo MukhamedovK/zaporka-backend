@@ -46,7 +46,7 @@ const createCategory = async (req, res) => {
 
     const finalSlug = slugify(slug && slug !== "string" ? slug : name);
     const existingSlug = await categoryModel.find({ slug: finalSlug });
-    if (existingSlug) {
+    if (existingSlug.length > 0) {
       return res.status(400).json({ message: "Slug has already exists!" });
     }
 
