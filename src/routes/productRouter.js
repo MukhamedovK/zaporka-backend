@@ -4,7 +4,7 @@ const crudCreator = require("../services/crudCreator");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
 const { searchProduct } = require("../controllers/searchController");
-const { createProduct, updateProduct } = require("../controllers/productController");
+const { createProduct, updateProduct, getProductsByCategory } = require("../controllers/productController");
 
 const productController = crudCreator(productModel, {
   useImages: true,
@@ -593,7 +593,30 @@ const productController = crudCreator(productModel, {
  *         description: Internal server error
  */
 
+/**
+ * @swagger
+ * /api/v1/products/by-category/{slug}:
+ *   get:
+ *     summary: Get products by category slug
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Slug of the category to filter products
+ *     responses:
+ *       200:
+ *         description: List of products in the given category
+ *       404:
+ *         description: Category not found
+ *       500:
+ *         description: Internal server error
+ */
+
 router.get("/search", searchProduct);
+router.get("/by-category/:slug", getProductsByCategory);
 router.get("/", productController.getAll);
 router.get("/:id", productController.getOne);
 router.post(
