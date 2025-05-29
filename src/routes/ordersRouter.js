@@ -198,7 +198,7 @@ const orderController = crudCreator(ordersModel, {
 
 router.get("/", orderController.getAll);
 router.get("/:id", orderController.getOne);
-router.post("/", authMiddleware, orderController.create);
+router.post("/", orderController.create);
 router.put("/:id", authMiddleware, orderController.update);
 router.delete("/:id", authMiddleware, orderController.remove);
 router.patch("/:id/pay", authMiddleware, makePaid);
