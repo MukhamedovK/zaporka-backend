@@ -4,13 +4,20 @@ const crudCreator = require("../services/crudCreator");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
 const { searchProduct } = require("../controllers/searchController");
-const { createProduct, updateProduct, getProductsByCategory } = require("../controllers/productController");
+const {
+  createProduct,
+  updateProduct,
+  getProductsByCategory,
+} = require("../controllers/productController");
 
 const productController = crudCreator(productModel, {
   useImages: true,
-  imageFields: ["mainImage", "swiperImages"],
+  imageFields: ["images"],
   imageFolder: "products",
-  populateFields: "category",
+  populateFields: ["category", "others"],
+  selectFields: [
+    "_id images title stock price name slug image productsQuantity",
+  ],
 });
 
 /**
@@ -30,135 +37,43 @@ const productController = crudCreator(productModel, {
  *           type: number
  *           description: Количество товара в наличии
  *         price:
- *           type: array
- *           items:
- *             type: number
+ *           type: number
  *           description: Цена продукта
- *         currency:
+ *         size:
  *           type: string
- *           default: "UZS"
- *           description: Валюта
- *         views:
- *           type: number
- *           default: 0
- *           description: Количество просмотров
- *         ordersCount:
- *           type: number
- *           default: 0
- *           description: Количество заказов
- *         availabilitiy:
- *           type: boolean
- *           default: true
- *           description: Доступность товара
+ *           description: Размер продукта
  *         category:
  *           type: string
  *           description: "Id of the category"
- *         mainImage:
- *           type: string
- *           format: binary
- *           description: Главное изображение
- *         swiperImages:
+ *         images:
  *           type: array
  *           items:
  *             type: string
  *             format: binary
  *           description: Галерея изображений
- *         thickness:
- *           type: string
- *           description: Толщина
- *         SDR:
- *           type: number
- *           description: SDR
- *         rotationAngle:
- *           type: string
- *           description: Угол поворота
  *         material:
  *           type: string
  *           description: Материал
- *         sizeInInch:
- *           type: array
- *           items:
- *             type: string
- *           description: Размер в дюймах
- *         sizeInmm:
- *           type: array
- *           items:
- *             type: number
- *           description: Размер в мм
- *         DN:
- *           type: array
- *           items:
- *             type: number
- *           description: Диаметр номинальный (DN)
+ *         maxTemperature:
+ *           type: string
+ *           description: Максимальная температура
  *         type:
- *           type: array
- *           items:
- *             type: string
- *           description: Тип продукта
- *         manufacturer:
  *           type: string
- *           description: Производитель
- *         standart:
+ *           description: Вид продукта
+ *         pressure:
+ *           type: number
+ *           description: Давление
+ *         controlType:
  *           type: string
- *           description: Стандарт
- *         surfaceMaterial:
- *           type: array
- *           items:
- *             type: string
- *           description: Материал поверхности
- *         workEnv:
- *           type: array
- *           items:
- *             type: string
- *           description: Рабочая среда
- *         steelGrade:
+ *           description: Тип управления
+ *         weight:
  *           type: string
- *           description: Марка стали
- *         workEnvTemperature:
- *           type: string
- *           description: Температура рабочей среды
- *         nominalPressure:
+ *           description: Вес продукта
+ *         others:
  *           type: array
  *           items:
  *             type: string
- *           description: Номинальное давление
- *         workingPressure:
- *           type: array
- *           items:
- *             type: string
- *           description: Рабочее давление
- *         minPressure:
- *           type: array
- *           items:
- *             type: string
- *           description: Минимальное давление
- *         maxPressure:
- *           type: array
- *           items:
- *             type: string
- *           description: Максимальное давление
- *         model:
- *           type: string
- *           description: Модель
- *         application:
- *           type: array
- *           items:
- *             type: string
- *           description: Область применения
- *         construction:
- *           type: string
- *           description: Конструкция
- *         serviceLife:
- *           type: string
- *           description: Срок службы
- *         accession:
- *           type: string
- *           description: Присоединение
- *         advantages:
- *           type: array
- *           items:
- *             type: string
- *           description: Преимущества
+ *           description: Другие продукты
  */
 
 /**
@@ -197,135 +112,43 @@ const productController = crudCreator(productModel, {
  *                 type: number
  *                 description: Количество товара в наличии
  *               price:
- *                 type: array
- *                 items:
- *                   type: number
+ *                 type: number
  *                 description: Цена продукта
- *               currency:
+ *               size:
  *                 type: string
- *                 default: "UZS"
- *                 description: Валюта
- *               views:
- *                 type: number
- *                 default: 0
- *                 description: Количество просмотров
- *               ordersCount:
- *                 type: number
- *                 default: 0
- *                 description: Количество заказов
- *               availabilitiy:
- *                 type: boolean
- *                 default: true
- *                 description: Доступность товара
+ *                 description: Размер продукта
  *               category:
  *                 type: string
  *                 description: "Id of the category"
- *               mainImage:
- *                 type: string
- *                 format: binary
- *                 description: Главное изображение
- *               swiperImages:
+ *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
  *                 description: Галерея изображений
- *               thickness:
- *                 type: string
- *                 description: Толщина
- *               SDR:
- *                 type: number
- *                 description: SDR
- *               rotationAngle:
- *                 type: string
- *                 description: Угол поворота
  *               material:
  *                 type: string
  *                 description: Материал
- *               sizeInInch:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Размер в дюймах
- *               sizeInmm:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Размер в мм
- *               DN:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Диаметр номинальный (DN)
+ *               maxTemperature:
+ *                 type: string
+ *                 description: Максимальная температура
  *               type:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Тип продукта
- *               manufacturer:
  *                 type: string
- *                 description: Производитель
- *               standart:
+ *                 description: Вид продукта
+ *               pressure:
+ *                 type: number
+ *                 description: Давление
+ *               controlType:
  *                 type: string
- *                 description: Стандарт
- *               surfaceMaterial:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Материал поверхности
- *               workEnv:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Рабочая среда
- *               steelGrade:
+ *                 description: Тип управления
+ *               weight:
  *                 type: string
- *                 description: Марка стали
- *               workEnvTemperature:
- *                 type: string
- *                 description: Температура рабочей среды
- *               nominalPressure:
+ *                 description: Вес продукта
+ *               others:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Номинальное давление
- *               workingPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Рабочее давление
- *               minPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Минимальное давление
- *               maxPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Максимальное давление
- *               model:
- *                 type: string
- *                 description: Модель
- *               application:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Область применения
- *               construction:
- *                 type: string
- *                 description: Конструкция
- *               serviceLife:
- *                 type: string
- *                 description: Срок службы
- *               accession:
- *                 type: string
- *                 description: Присоединение
- *               advantages:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Преимущества
+ *                 description: Другие продукты
  *     responses:
  *       201:
  *         description: Продукт успешно создан
@@ -384,135 +207,43 @@ const productController = crudCreator(productModel, {
  *                 type: number
  *                 description: Количество товара в наличии
  *               price:
- *                 type: array
- *                 items:
- *                   type: number
+ *                 type: number
  *                 description: Цена продукта
- *               currency:
+ *               size:
  *                 type: string
- *                 default: "UZS"
- *                 description: Валюта
- *               views:
- *                 type: number
- *                 default: 0
- *                 description: Количество просмотров
- *               ordersCount:
- *                 type: number
- *                 default: 0
- *                 description: Количество заказов
- *               availabilitiy:
- *                 type: boolean
- *                 default: true
- *                 description: Доступность товара
+ *                 description: Размер продукта
  *               category:
  *                 type: string
  *                 description: "Id of the category"
- *               mainImage:
- *                 type: string
- *                 format: binary
- *                 description: Главное изображение
- *               swiperImages:
+ *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
  *                 description: Галерея изображений
- *               thickness:
- *                 type: string
- *                 description: Толщина
- *               SDR:
- *                 type: number
- *                 description: SDR
- *               rotationAngle:
- *                 type: string
- *                 description: Угол поворота
  *               material:
  *                 type: string
  *                 description: Материал
- *               sizeInInch:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Размер в дюймах
- *               sizeInmm:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Размер в мм
- *               DN:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Диаметр номинальный (DN)
+ *               maxTemperature:
+ *                 type: string
+ *                 description: Максимальная температура
  *               type:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Тип продукта
- *               manufacturer:
  *                 type: string
- *                 description: Производитель
- *               standart:
+ *                 description: Вид продукта
+ *               pressure:
+ *                 type: number
+ *                 description: Давление
+ *               controlType:
  *                 type: string
- *                 description: Стандарт
- *               surfaceMaterial:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Материал поверхности
- *               workEnv:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Рабочая среда
- *               steelGrade:
+ *                 description: Тип управления
+ *               weight:
  *                 type: string
- *                 description: Марка стали
- *               workEnvTemperature:
- *                 type: string
- *                 description: Температура рабочей среды
- *               nominalPressure:
+ *                 description: Вес продукта
+ *               others:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Номинальное давление
- *               workingPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Рабочее давление
- *               minPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Минимальное давление
- *               maxPressure:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Максимальное давление
- *               model:
- *                 type: string
- *                 description: Модель
- *               application:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Область применения
- *               construction:
- *                 type: string
- *                 description: Конструкция
- *               serviceLife:
- *                 type: string
- *                 description: Срок службы
- *               accession:
- *                 type: string
- *                 description: Присоединение
- *               advantages:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Преимущества
+ *                 description: Другие продукты
  *     responses:
  *       200:
  *         description: Продукт успешно обновлен
@@ -623,10 +354,7 @@ router.post(
   "/",
   [
     authMiddleware,
-    uploadMiddleware("products", [
-      { name: "mainImage", maxCount: 1 },
-      { name: "swiperImages", maxCount: 5 },
-    ]),
+    uploadMiddleware("products", [{ name: "images", maxCount: 5 }]),
   ],
   createProduct
 );
@@ -634,10 +362,7 @@ router.put(
   "/:id",
   [
     authMiddleware,
-    uploadMiddleware("products", [
-      { name: "mainImage", maxCount: 1 },
-      { name: "swiperImages", maxCount: 5 },
-    ]),
+    uploadMiddleware("products", [{ name: "images", maxCount: 5 }]),
   ],
   updateProduct
 );

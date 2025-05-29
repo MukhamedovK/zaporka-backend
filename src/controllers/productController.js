@@ -3,7 +3,7 @@ const categoryModel = require("../models/categoryModel");
 const imageUrlCreator = require("../services/imageUrlCreator");
 const deleteFile = require("../services/deleteFile");
 
-const imageFields = ["mainImage", "swiperImages"];
+const imageFields = ["images"];
 const imageFolder = "products";
 
 const createProduct = async (req, res) => {
@@ -20,6 +20,8 @@ const createProduct = async (req, res) => {
         images[field] = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
       }
     });
+    
+    const newItem = await productModel.create({ ...req.body, ...images });
 
     let category = await categoryModel
       .findById(req.body?.category)
@@ -32,7 +34,6 @@ const createProduct = async (req, res) => {
       return res.status(400).json({ message: "Category does not exists" });
     }
 
-    const newItem = await productModel.create({ ...req.body, ...images });
     res.status(201).json(newItem);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -46,13 +47,19 @@ const updateProduct = async (req, res) => {
       if (req.files?.[field]) {
         const imageUrls = Array.isArray(req.files[field])
           ? req.files[field].map((file) =>
-              imageUrlCreator(file.filename, imageFolder)
-            )
-          : [imageUrlCreator(req.files[field][0].filename, imageFolder)];
-
+            imageUrlCreator(file.filename, imageFolder)
+        )
+        : [imageUrlCreator(req.files[field][0].filename, imageFolder)];
+        
         images[field] = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
       }
     });
+    
+    const query = productModel.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, ...images },
+      { new: true, runValidators: true }
+    );
 
     const oldProduct = await productModel.findById(req.params.id);
     if (!oldProduct) {
@@ -68,7 +75,7 @@ const updateProduct = async (req, res) => {
         }
       }
     });
-
+    
     if (
       req.body.category &&
       String(oldProduct.category) !== String(req.body.category)
@@ -90,13 +97,7 @@ const updateProduct = async (req, res) => {
       }
     }
 
-    const query = productModel.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, ...images },
-      { new: true, runValidators: true }
-    );
-
-    if (populateFields) query.populate(populateFields);
+    query.populate("others").select("images title stock").populate("category");
 
     const updatedProduct = await query;
 
@@ -114,7 +115,7 @@ const getProductsByCategory = async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    const products = await productModel.find({ category: category._id });
+    const products = await productModel.find({ category: category._id }).populate("others").select("_id images title stock price").populate("category");
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
