@@ -15,9 +15,6 @@ const productController = crudCreator(productModel, {
   imageFields: ["images"],
   imageFolder: "products",
   populateFields: ["category", "others"],
-  selectFields: [
-    "_id images title stock price name slug image productsQuantity",
-  ],
 });
 
 /**
