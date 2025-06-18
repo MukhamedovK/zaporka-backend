@@ -8,6 +8,7 @@ const {
   createProduct,
   updateProduct,
   getProductsByCategory,
+  deleteProduct,
 } = require("../controllers/productController");
 
 const productController = crudCreator(productModel, {
@@ -363,6 +364,6 @@ router.put(
   ],
   updateProduct
 );
-router.delete("/:id", authMiddleware, productController.remove);
+router.delete("/:id", authMiddleware, deleteProduct);
 
 module.exports = router;

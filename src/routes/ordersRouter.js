@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const ordersModel = require("../models/ordersModel");
 const crudCreator = require("../services/crudCreator");
-const { makePaid } = require("../controllers/orderController");
+const { makePaid, createOrder } = require("../controllers/orderController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const orderController = crudCreator(ordersModel, {
@@ -198,7 +198,7 @@ const orderController = crudCreator(ordersModel, {
 
 router.get("/", orderController.getAll);
 router.get("/:id", orderController.getOne);
-router.post("/", orderController.create);
+router.post("/", createOrder);
 router.put("/:id", authMiddleware, orderController.update);
 router.delete("/:id", authMiddleware, orderController.remove);
 router.patch("/:id/pay", authMiddleware, makePaid);

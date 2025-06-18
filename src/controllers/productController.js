@@ -20,7 +20,7 @@ const createProduct = async (req, res) => {
         images[field] = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
       }
     });
-    
+
     const newItem = await productModel.create({ ...req.body, ...images });
 
     let category = await categoryModel
@@ -47,14 +47,14 @@ const updateProduct = async (req, res) => {
       if (req.files?.[field]) {
         const imageUrls = Array.isArray(req.files[field])
           ? req.files[field].map((file) =>
-            imageUrlCreator(file.filename, imageFolder)
-        )
-        : [imageUrlCreator(req.files[field][0].filename, imageFolder)];
-        
+              imageUrlCreator(file.filename, imageFolder)
+            )
+          : [imageUrlCreator(req.files[field][0].filename, imageFolder)];
+
         images[field] = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
       }
     });
-    
+
     const query = productModel.findByIdAndUpdate(
       req.params.id,
       { ...req.body, ...images },
@@ -75,7 +75,7 @@ const updateProduct = async (req, res) => {
         }
       }
     });
-    
+
     if (
       req.body.category &&
       String(oldProduct.category) !== String(req.body.category)
@@ -107,6 +107,38 @@ const updateProduct = async (req, res) => {
   }
 };
 
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await productModel.findById(req.params.id);
+
+    let category = await categoryModel
+      .findById(product?.category)
+      .select("productsQuantity");
+
+    if (category) {
+      category.productsQuantity -= 1;
+      await category.save();
+    }
+
+    const item = await productModel.findByIdAndDelete(req.params.id);
+    if (!item) return res.status(404).json({ message: "Not found" });
+
+    imageFields.forEach((field) => {
+      if (item[field]) {
+        if (Array.isArray(item[field])) {
+          item[field].forEach((filePath) => deleteFile(filePath));
+        } else {
+          deleteFile(item[field]);
+        }
+      }
+    });
+
+    res.status(200).json({ message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const getProductsByCategory = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -115,11 +147,15 @@ const getProductsByCategory = async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    const products = await productModel.find({ category: category._id }).populate("others").select("_id images title stock price").populate("category");
+    const products = await productModel
+      .find({ category: category._id })
+      .populate("others")
+      .select("_id images title stock price")
+      .populate("category");
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { createProduct, updateProduct, getProductsByCategory };
+module.exports = { createProduct, updateProduct, getProductsByCategory, deleteProduct };
