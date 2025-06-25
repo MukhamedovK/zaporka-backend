@@ -45,6 +45,10 @@ router.put("/", updateCompanyInfo)
  *                       type: string
  *                     longitude:
  *                       type: string
+ *                 telegram:
+ *                   type: string
+ *                 workTime:
+ *                   type: string
  *                 companyInfo:
  *                   type: string
  *       500:
@@ -81,6 +85,10 @@ router.put("/", updateCompanyInfo)
  *                     type: string
  *                   longitude:
  *                     type: string
+ *               telegram:
+ *                 type: string
+ *               workTime:
+ *                 type: string
  *               companyInfo:
  *                 type: string
  *     responses:

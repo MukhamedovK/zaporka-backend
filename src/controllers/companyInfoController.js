@@ -12,6 +12,8 @@ const getCompanyInfo = async (req, res) => {
           latitude: "",
           longitude: "",
         },
+        telegram: "",
+        workTime: "",
         companyInfo: "",
       });
     }
