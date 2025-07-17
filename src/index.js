@@ -43,7 +43,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Swagger router
-app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Routes
 app.use("/api/v1/products", productRouter);

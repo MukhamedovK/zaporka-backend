@@ -15,7 +15,7 @@ const swaggerOptions = {
     basePath: "/api/v1",
     servers: [
       {
-        url: "https://zaporka-backend.onrender.com"
+        url: "https://api.zaporka.uz"
       },
       {
         url: `http://localhost:${PORT}`,
