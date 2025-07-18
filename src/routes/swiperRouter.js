@@ -66,7 +66,6 @@ const swiperCrud = crudCreator(Swiper, {
  *             type: object
  *             required:
  *               - image
- *               - link
  *             properties:
  *               image:
  *                 type: string
