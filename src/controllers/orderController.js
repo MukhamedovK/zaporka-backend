@@ -7,7 +7,7 @@ const createOrder = async (req, res) => {
 
     const populatedOrder = await ordersModel
       .findById(order._id)
-      .populate("products");
+      .populate("products.product");
 
     sendOrderToBot(populatedOrder);
     res.status(201).json(populatedOrder);

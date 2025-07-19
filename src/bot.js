@@ -1,7 +1,7 @@
 require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const token = process.env.BOT_TOKEN;
-const bot = new TelegramBot(token, { polling: false })
+const bot = new TelegramBot(token, { polling: false });
 
 const GROUP_CHAT_ID_PENDING = "-1002804493258";
 
@@ -21,21 +21,26 @@ const sendOrderToBot = (orderData) => {
 
   orderData?.products?.forEach((product) => {
     products.push(`
-      🔸 <b>${product?.title}</b>
-      🔸 <b>Цена:</b> ${product?.price} сум
-      🔸 <b>Размер:</b> ${product?.size}
-      🔸 <b>Вес:</b> ${product?.weight}
-      🔸 <b>Материал:</b> ${product?.material}
+      🔸 <b>${product?.product?.title}</b>
+      🔸 <b>Цена:</b> ${product?.product?.price} сум
+      🔸 <b>Размер:</b> ${product?.product?.size}
+      🔸 <b>Вес:</b> ${product?.product?.weight}
+      🔸 <b>Материал:</b> ${product?.product?.material}
+      🔸 <b>Кол-во:</b> ${product?.quantity} шт.
     `);
   });
 
   const message = `
-    🧾 <b>Заказ ${orderData?._id || ""}:</b>
+    🧾 <b>Заказ ${
+      orderData?.orderNumber?.toString().padStart(6, "0") || ""
+    }:</b>
     🔸 <b>Клиент:</b> ${orderData?.firstName} ${orderData?.lastName}
     🔸 <b>Телефон:</b> ${orderData?.phoneNumber}
     🔸 <b>Адрес:</b> ${orderData?.address}
     ${products.join("\n")}
-    ${statusSticker} <b>Статус:</b> ${orderData?.isPaid ? "Оплачено" : "Не оплачено"}
+    ${statusSticker} <b>Статус:</b> ${
+    orderData?.isPaid ? "Оплачено" : "Не оплачено"
+  }
 
     🇺🇿 <b>Сумма:</b> ${formattedAmount} сум
   `;

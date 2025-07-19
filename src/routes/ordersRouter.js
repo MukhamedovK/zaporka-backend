@@ -5,7 +5,7 @@ const { makePaid, createOrder } = require("../controllers/orderController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const orderController = crudCreator(ordersModel, {
-  populateFields: ["products"],
+  populateFields: ["products.product"],
 });
 
 /**
@@ -19,9 +19,19 @@ const orderController = crudCreator(ordersModel, {
  *       properties:
  *         products:
  *           type: array
+ *           description: List of products with quantity
  *           items:
- *             type: string
- *             description: Product ID (ObjectId)
+ *             type: object
+ *             required:
+ *               - quantity
+ *               - product
+ *             properties:
+ *               product:
+ *                 type: string
+ *                 description: Product ID (ObjectId)
+ *               quantity:
+ *                 type: number
+ *                 description: Quantity of the product
  *         firstName:
  *           type: string
  *           example: John
