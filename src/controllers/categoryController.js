@@ -1,4 +1,5 @@
 const categoryModel = require("../models/categoryModel");
+const productModel = require("../models/productModel");
 const { slugify } = require("transliteration");
 const imageUrlCreator = require("../services/imageUrlCreator");
 const deleteFile = require("../services/deleteFile");
@@ -103,16 +104,29 @@ const updateCategory = async (req, res) => {
 
 const deleteCategory = async (req, res) => {
   try {
-    const category = await categoryModel.findByIdAndDelete(req.params.id);
+    const category = await categoryModel.findById(req.params.id);
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
     }
 
-    if (category.image) {
-      deleteFile(category.image);
+    const products = await productModel.find({ category: category?._id });
+
+    for (const product of products) {
+      if (product?.images && product?.images?.length > 0) {
+        product?.images?.forEach((imgPath) => {
+          deleteFile(imgPath);
+        });
+      }
+
+      await productModel.findByIdAndDelete(product?._id);
     }
 
-    res.json({ message: "Category deleted" });
+    if (category?.image) {
+      deleteFile(category.image);
+    }
+    await categoryModel.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Category and related products deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
