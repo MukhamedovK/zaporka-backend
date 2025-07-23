@@ -33,7 +33,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "./uploads")));
 
 // CORS
-app.use(cors({ origin: "*" }));
+app.use(
+  cors({
+    origin: [
+      // Localhost
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:8000",
+
+      // Server
+      "https://zaporka.uz",
+      "https://admin.zaporka.uz",
+      "https://api.zaporka.uz",
+    ],
+  })
+);
 
 // Logging
 if (process.env.NODE_ENV !== "production") {
