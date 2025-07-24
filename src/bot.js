@@ -68,7 +68,7 @@ const updateOrderStatus = (orderData) => {
     sendOrderToBot(orderData);
 
     const paidNotification = `
-      ✅ <b>Заказ ${orderData?._id || ""}</b> Оплачен
+      ✅ <b>Заказ ${orderData?.orderNumber?.toString().padStart(6, "0") || ""}</b> Оплачен
     `;
 
     bot
