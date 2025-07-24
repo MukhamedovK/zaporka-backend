@@ -22,7 +22,7 @@ const makePaid = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: "Order ID is required" });
     }
-    let order = await ordersModel.findById(id).populate("products");
+    let order = await ordersModel.findById(id).populate("products.product");
 
     if (!order) {
       return res.status(400).json({ message: "Order not found" });
