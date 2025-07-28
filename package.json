@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "start": "cross-env NODE_ENV=production node src/index.js",
-    "bot": "nodemon src/bot.js"
+    "bot": "nodemon src/bot.js",
+    "abu": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",
